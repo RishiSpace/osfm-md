@@ -85,7 +85,7 @@ function App() {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="bg-gray-800 p-8 rounded-lg shadow-lg text-center">
-          <h1 className="text-2xl font-bold text-white mb-6">OSFM Markdown Editor</h1>
+          <h1 className="text-2xl font-bold text-white mb-6">Secure Markdown Editor</h1>
           <button
             onClick={() => signInWithGoogle()}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
