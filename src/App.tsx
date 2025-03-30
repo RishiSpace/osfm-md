@@ -105,6 +105,7 @@ function App() {
         onSelectNote={setSelectedNoteId}
         onNewNote={handleNewNote}
         onSignOut={signOut}
+        onUpdateNote={handleUpdateNote}
       />
       <Editor
         note={notes.find((n) => n.id === selectedNoteId) || null}
@@ -114,4 +115,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

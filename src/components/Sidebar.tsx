@@ -1,6 +1,7 @@
 import React from 'react';
-import { FileText, Plus, LogOut } from 'lucide-react';
+import { FileText, Plus, LogOut, Wand2 } from 'lucide-react';
 import { Note } from '../types';
+import { enhanceWithAI } from '../utils/ai';
 
 interface SidebarProps {
   notes: Note[];
@@ -8,6 +9,7 @@ interface SidebarProps {
   onSelectNote: (id: string) => void;
   onNewNote: () => void;
   onSignOut: () => void;
+  onUpdateNote: (content: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -15,12 +17,28 @@ const Sidebar: React.FC<SidebarProps> = ({
   selectedNote,
   onSelectNote,
   onNewNote,
-  onSignOut
+  onSignOut,
+  onUpdateNote
 }) => {
+  const handleEnhance = async () => {
+    if (!selectedNote) return;
+    
+    const currentNote = notes.find(note => note.id === selectedNote);
+    if (!currentNote) return;
+
+    try {
+      const enhancedContent = await enhanceWithAI(currentNote.content);
+      onUpdateNote(enhancedContent);
+    } catch (error) {
+      console.error('Failed to enhance note:', error);
+      alert('Failed to enhance note. Please try again.');
+    }
+  };
+
   return (
     <div className="w-64 h-screen bg-gray-900/95 backdrop-blur-md border-r border-gray-700 flex flex-col">
       <div className="p-4 border-b border-gray-700 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white">Notes</h1>
+        <h1 className="text-xl font-bold text-white">OSFM Markdown Editor</h1>
         <button
           onClick={onNewNote}
           className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
@@ -42,6 +60,14 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         ))}
       </div>
+      <button
+        onClick={handleEnhance}
+        disabled={!selectedNote}
+        className="p-4 border-t border-gray-700 flex items-center space-x-2 hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Wand2 className="w-5 h-5 text-gray-300" />
+        <span className="text-gray-300">Enhance with AI (Experimental)</span>
+      </button>
       <button
         onClick={onSignOut}
         className="p-4 border-t border-gray-700 flex items-center space-x-2 hover:bg-gray-800 transition-colors"
