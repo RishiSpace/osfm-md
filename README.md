@@ -49,5 +49,3 @@ Contributions are welcome! If you'd like to contribute to OSFM Markdown Editor, 
 This project is licensed under the GPL-3.0 License. For more details, refer to the [LICENSE](https://github.com/RishiSpace/osfm-md/blob/main/LICENSE) file.
 
 ---
-
-*Note: This README is based on the available information from the [OSFM Markdown Editor repository](https://github.com/RishiSpace/osfm-md).
