@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { ref, onValue, set } from 'firebase/database';
+import { ref, onValue, set, remove } from 'firebase/database';
 import { database } from './firebase';
 import { useAuth } from './contexts/AuthContext';
 import { Note } from './types';
 import Sidebar from './components/Sidebar';
 import Editor from './components/Editor';
+import ShareDialog from './components/ShareDialog';
 import { encryptContent, decryptContent } from './utils/encryption';
 import { FileText } from 'lucide-react';
+import { findUserByEmail } from './utils/users';
 
 function App() {
   const { user, loading, signInWithGoogle, signOut } = useAuth();
@@ -41,7 +43,8 @@ function App() {
       title: 'Untitled',
       content: '',
       createdAt: Date.now(),
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
+      collaborators: []
     };
 
     await set(ref(database, `notes/${user.uid}/${newNote.id}`), {
@@ -68,6 +71,42 @@ function App() {
     await set(ref(database, `notes/${user.uid}/${selectedNoteId}`), {
       ...updatedNote,
       content: encryptContent(updatedNote.content, user.uid)
+    });
+  };
+
+  const handleDeleteNote = async (noteId: string) => {
+    if (!user) return;
+
+    await remove(ref(database, `notes/${user.uid}/${noteId}`));
+    
+    if (selectedNoteId === noteId) {
+      setSelectedNoteId(null);
+    }
+  };
+
+  const handleShareNote = async (email: string) => {
+    if (!user || !selectedNoteId) return;
+
+    const collaboratorId = await findUserByEmail(email);
+    if (!collaboratorId) return;
+
+    const note = notes.find((n) => n.id === selectedNoteId);
+    if (!note) return;
+
+    const updatedNote = {
+      ...note,
+      collaborators: [...(note.collaborators || []), collaboratorId]
+    };
+
+    await set(ref(database, `notes/${user.uid}/${selectedNoteId}`), {
+      ...updatedNote,
+      content: encryptContent(updatedNote.content, user.uid)
+    });
+
+    // Share note with collaborator
+    await set(ref(database, `shared_notes/${collaboratorId}/${selectedNoteId}`), {
+      owner: user.uid,
+      noteId: selectedNoteId
     });
   };
 
@@ -106,11 +145,22 @@ function App() {
         onNewNote={handleNewNote}
         onSignOut={signOut}
         onUpdateNote={handleUpdateNote}
+        onDeleteNote={handleDeleteNote}
       />
-      <Editor
-        note={notes.find((n) => n.id === selectedNoteId) || null}
-        onUpdateNote={handleUpdateNote}
-      />
+      <div className="flex-1 flex flex-col relative">
+        <div className="absolute top-4 right-4 z-10">
+          {selectedNoteId && (
+            <ShareDialog
+              noteId={selectedNoteId}
+              onShare={handleShareNote}
+            />
+          )}
+        </div>
+        <Editor
+          note={notes.find((n) => n.id === selectedNoteId) || null}
+          onUpdateNote={handleUpdateNote}
+        />
+      </div>
     </div>
   );
 }

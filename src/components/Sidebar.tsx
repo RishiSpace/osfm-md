@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, Plus, LogOut, Wand2 } from 'lucide-react';
+import { FileText, Plus, LogOut, Wand2, Trash2 } from 'lucide-react';
 import { Note } from '../types';
 import { enhanceWithAI } from '../utils/ai';
 
@@ -10,6 +10,7 @@ interface SidebarProps {
   onNewNote: () => void;
   onSignOut: () => void;
   onUpdateNote: (content: string) => void;
+  onDeleteNote: (id: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -18,7 +19,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSelectNote,
   onNewNote,
   onSignOut,
-  onUpdateNote
+  onUpdateNote,
+  onDeleteNote
 }) => {
   const handleEnhance = async () => {
     if (!selectedNote) return;
@@ -50,13 +52,26 @@ const Sidebar: React.FC<SidebarProps> = ({
         {notes.map((note) => (
           <div
             key={note.id}
-            onClick={() => onSelectNote(note.id)}
-            className={`p-3 cursor-pointer flex items-center space-x-2 hover:bg-gray-800 transition-colors ${
+            className={`p-3 cursor-pointer flex items-center justify-between group hover:bg-gray-800 transition-colors ${
               selectedNote === note.id ? 'bg-gray-800' : ''
             }`}
           >
-            <FileText className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-300 truncate">{note.title || 'Untitled'}</span>
+            <div 
+              className="flex items-center space-x-2 flex-1"
+              onClick={() => onSelectNote(note.id)}
+            >
+              <FileText className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-300 truncate">{note.title || 'Untitled'}</span>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteNote(note.id);
+              }}
+              className="p-1 opacity-0 group-hover:opacity-100 hover:bg-gray-700 rounded transition-all duration-200"
+            >
+              <Trash2 className="w-4 h-4 text-red-400" />
+            </button>
           </div>
         ))}
       </div>
