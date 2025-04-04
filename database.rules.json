@@ -1,0 +1,21 @@
+{
+    "rules": {
+      "users": {
+        ".indexOn": ["email"],
+        ".read": "auth != null",
+        ".write": "auth != null"
+      },
+      "notes": {
+        "$uid": {
+          ".read": "auth != null && (auth.uid === $uid || root.child('notes').child($uid).child($noteId).child('collaborators').child(auth.uid).exists())",
+          ".write": "auth != null && auth.uid === $uid"
+        }
+      },
+      "shared_notes": {
+        "$uid": {
+          ".read": "auth != null && auth.uid === $uid",
+          ".write": "auth != null"
+        }
+      }
+    }
+  }
