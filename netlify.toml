@@ -25,6 +25,16 @@
   [headers.values]
     Content-Type = "text/javascript"
 
+[[redirects]]
+  from = "/about"
+  to = "/about.html"
+  status = 200
+
+[[redirects]]
+  from = "/privacy"
+  to = "/privacy.html"
+  status = 200
+
 # Handle SPA routing
 [[redirects]]
   from = "/*"
