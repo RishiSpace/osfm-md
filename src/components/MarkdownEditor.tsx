@@ -1,9 +1,7 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import { useNotes } from '../contexts/NotesContext';
-import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 
@@ -11,41 +9,55 @@ const MarkdownEditor: React.FC = () => {
   const { currentNote, updateNote } = useNotes();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [isPreview, setIsPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [renderedContent, setRenderedContent] = useState('');
+  const [localUpdatedAt, setLocalUpdatedAt] = useState<number | null>(null);
+  const saveTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Track last saved values to avoid unnecessary updates
+  const lastSavedTitle = useRef('');
+  const lastSavedContent = useRef('');
 
   useEffect(() => {
     if (currentNote) {
       setTitle(currentNote.title);
       setContent(currentNote.content);
+      setLocalUpdatedAt(currentNote.updatedAt || null);
+      lastSavedTitle.current = currentNote.title;
+      lastSavedContent.current = currentNote.content;
     }
   }, [currentNote]);
 
-  const handleSave = async () => {
-    if (!currentNote) return;
-
-    setIsSaving(true);
-    try {
-      await updateNote(currentNote.id, { title, content });
-    } catch (error) {
-      console.error('Error saving note:', error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const renderMarkdown = async (markdown: string) => {
-    const html = await marked(markdown);
-    return DOMPurify.sanitize(html);
-  };
-
-  const [renderedContent, setRenderedContent] = useState('');
-
   useEffect(() => {
-    if (isPreview && content) {
-      renderMarkdown(content).then(setRenderedContent);
+    setRenderedContent(DOMPurify.sanitize(marked.parse(content || '')));
+  }, [content]);
+
+  // Autosave only if content or title actually changed
+  useEffect(() => {
+    if (!currentNote) return;
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+
+    // Only schedule autosave if user has changed something
+    if (title !== lastSavedTitle.current || content !== lastSavedContent.current) {
+      saveTimeout.current = setTimeout(async () => {
+        setIsSaving(true);
+        try {
+          await updateNote(currentNote.id, { title, content });
+          setLocalUpdatedAt(Date.now());
+          lastSavedTitle.current = title;
+          lastSavedContent.current = content;
+        } catch (error) {
+          console.error('Error autosaving note:', error);
+        } finally {
+          setIsSaving(false);
+        }
+      }, 500);
     }
-  }, [content, isPreview]);
+
+    return () => {
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    };
+  }, [title, content, currentNote, updateNote]);
 
   if (!currentNote) {
     return (
@@ -68,58 +80,36 @@ const MarkdownEditor: React.FC = () => {
           className="text-xl font-bold bg-transparent border-none text-white placeholder-gray-400 focus:ring-0"
           placeholder="Note title..."
         />
-        
-        <div className="flex items-center space-x-2">
-          <Button
-            onClick={() => setIsPreview(!isPreview)}
-            variant={isPreview ? "default" : "outline"}
-            size="sm"
-          >
-            {isPreview ? 'Edit' : 'Preview'}
-          </Button>
-          
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            {isSaving ? 'Saving...' : 'Save'}
-          </Button>
-        </div>
       </div>
 
-      {/* Editor/Preview */}
-      <div className="flex-1 flex">
-        {!isPreview ? (
-          // Editor Mode
-          <div className="w-full">
-            <Textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="w-full h-full resize-none border-none bg-gray-900 text-white placeholder-gray-400 focus:ring-0 p-4 font-mono"
-              placeholder="Start writing your markdown here..."
-            />
-          </div>
-        ) : (
-          // Preview Mode
-          <div className="w-full overflow-y-auto p-4 bg-gray-900">
-            <div 
-              className="prose prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: renderedContent }}
-            />
-          </div>
-        )}
+      {/* Editor & Live Preview Side by Side */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Editor */}
+        <div className="w-1/2 h-full border-r border-gray-800 bg-gray-900">
+          <Textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            className="w-full h-full resize-none border-none bg-gray-900 text-white placeholder-gray-400 focus:ring-0 p-4 font-mono"
+            placeholder="Start writing your markdown here..."
+          />
+        </div>
+        {/* Live Preview */}
+        <div className="w-1/2 h-full overflow-y-auto p-4 bg-gray-900">
+          <div
+            className="prose prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: renderedContent }}
+          />
+        </div>
       </div>
 
       {/* Status Bar */}
       <div className="p-2 bg-gray-800 border-t border-gray-700 text-sm text-gray-400">
         <div className="flex justify-between items-center">
           <span>
-            {content.length} characters • {content.split('\n').length} lines
+            {(content || '').length} characters • {(content || '').split('\n').length} lines
           </span>
           <span>
-            Last saved: {currentNote.updatedAt ? new Date(currentNote.updatedAt).toLocaleTimeString() : 'Never'}
+            Last saved: {localUpdatedAt ? new Date(localUpdatedAt).toLocaleTimeString() : 'Never'}
           </span>
         </div>
       </div>

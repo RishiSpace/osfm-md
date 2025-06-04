@@ -1,6 +1,7 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AuthContextType, User } from '../types';
+import { auth } from '../config/firebase';
+import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -17,40 +18,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user in localStorage (mock authentication)
-    const storedUser = localStorage.getItem('mockUser');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    // Listen for Firebase Auth state changes
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          displayName: firebaseUser.displayName || '',
+          photoURL: firebaseUser.photoURL || '',
+        });
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
+    return unsubscribe;
   }, []);
 
   const signInWithGoogle = async () => {
-    try {
-      // Mock Google sign-in
-      const mockUser: User = {
-        uid: 'demo-user-123',
-        email: 'demo@example.com',
-        displayName: 'Demo User',
-        photoURL: 'https://via.placeholder.com/40'
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('mockUser', JSON.stringify(mockUser));
-    } catch (error) {
-      console.error('Sign in error:', error);
-      throw error;
-    }
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+    // User state will be updated by onAuthStateChanged
   };
 
   const signOut = async () => {
-    try {
-      setUser(null);
-      localStorage.removeItem('mockUser');
-    } catch (error) {
-      console.error('Sign out error:', error);
-      throw error;
-    }
+    await firebaseSignOut(auth);
+    // User state will be updated by onAuthStateChanged
   };
 
   const value: AuthContextType = {

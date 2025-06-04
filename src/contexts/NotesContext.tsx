@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { ref, push, set, onValue, update, remove } from 'firebase/database';
 import { database } from '../config/firebase';
@@ -29,7 +28,8 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return;
     }
 
-    const notesRef = ref(database, `users/${user.uid}/notes`);
+    // FIX: Use notes/{uid} instead of notes under users
+    const notesRef = ref(database, `notes/${user.uid}`);
     const unsubscribe = onValue(notesRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
@@ -64,7 +64,8 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       isShared: false,
     };
 
-    const noteRef = ref(database, `users/${user.uid}/notes/${noteId}`);
+    // FIX: Use notes/{uid}/{noteId}
+    const noteRef = ref(database, `notes/${user.uid}/${noteId}`);
     await set(noteRef, newNote);
 
     return noteId;
@@ -75,14 +76,22 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     setLoading(true);
     try {
-      const noteRef = ref(database, `users/${user.uid}/notes/${id}`);
+      // FIX: Use notes/{uid}/{id}
+      const noteRef = ref(database, `notes/${user.uid}/${id}`);
       onValue(noteRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
+          let decrypted = '';
+          try {
+            decrypted = data.encryptedContent ? decryptContent(data.encryptedContent) : '';
+          } catch (e) {
+            console.error('Decryption error:', e);
+            decrypted = '';
+          }
           const note: Note = {
             id,
             ...data,
-            content: decryptContent(data.encryptedContent),
+            content: decrypted,
           };
           setCurrentNote(note);
         }
@@ -107,14 +116,16 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       delete updateData.content;
     }
 
-    const noteRef = ref(database, `users/${user.uid}/notes/${id}`);
+    // FIX: Use notes/{uid}/{id}
+    const noteRef = ref(database, `notes/${user.uid}/${id}`);
     await update(noteRef, updateData);
   };
 
   const deleteNote = async (id: string): Promise<void> => {
     if (!user) throw new Error('User not authenticated');
 
-    const noteRef = ref(database, `users/${user.uid}/notes/${id}`);
+    // FIX: Use notes/{uid}/{id}
+    const noteRef = ref(database, `notes/${user.uid}/${id}`);
     await remove(noteRef);
 
     if (currentNote?.id === id) {
@@ -130,6 +141,7 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const value: NotesContextType = {
     notes,
     currentNote,
+    setCurrentNote, // <-- add this
     loading,
     createNote,
     loadNote,

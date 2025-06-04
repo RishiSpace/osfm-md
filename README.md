@@ -1,73 +1,51 @@
-# Welcome to your Lovable project
+# OSFM Markdown Editor
 
-## Project info
+OSFM Markdown Editor is a web-based application designed to provide a seamless and efficient experience for writing and editing Markdown documents. It offers a user-friendly interface that allows users to focus on their content without distractions.
 
-**URL**: https://lovable.dev/projects/80fbba55-2eab-4e6f-80b0-a7722f3f78a1
+## Features
 
-## How can I edit this code?
+- **Real-time Preview**: Instantly see the rendered output of your Markdown as you type, helping you visualize the final document.
 
-There are several ways of editing your application.
+- **Syntax Highlighting**: Enhanced readability with syntax highlighting for various Markdown elements, making it easier to structure your documents.
 
-**Use Lovable**
+- **Responsive Design**: Optimized for various screen sizes, ensuring a consistent experience across desktops, tablets, and smartphones.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/80fbba55-2eab-4e6f-80b0-a7722f3f78a1) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+To start using OSFM Markdown Editor:
 
-**Use your preferred IDE**
+1. **Access the Application**: Visit the live version at [osfm-md.rishisp.me](https://osfm-md.rishisp.tech) to use the editor directly in your browser.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. **Clone the Repository**: If you prefer to run the editor locally or contribute to its development, clone the repository:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+   ```bash
+   git clone https://github.com/RishiSpace/osfm-md.git
+   ```
 
-Follow these steps:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+3. **Install Dependencies**: Navigate to the project directory and install the necessary dependencies:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+   ```bash
+   cd osfm-md
+   npm install
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+4. **Run the Application**: Launch the development server:
 
-**Edit a file directly in GitHub**
+   ```bash
+   npm run dev
+   ```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
 
-**Use GitHub Codespaces**
+   Open your browser and go to `http://localhost:5173` to access the editor.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Contributing
 
-## What technologies are used for this project?
+Contributions are welcome! If you'd like to contribute to OSFM Markdown Editor, please fork the repository and create a pull request with your enhancements or bug fixes.
 
-This project is built with:
+## License
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+This project is licensed under the GPL-3.0 License. For more details, refer to the [LICENSE](https://github.com/RishiSpace/osfm-md/blob/main/LICENSE) file.
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/80fbba55-2eab-4e6f-80b0-a7722f3f78a1) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+---

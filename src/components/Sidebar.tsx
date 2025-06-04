@@ -1,9 +1,9 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNotes } from '../contexts/NotesContext';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { enhanceWithAI } from '../utils/enhanceWithAI';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -13,7 +13,8 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, onCreateNote }) => {
   const { user, signOut } = useAuth();
-  const { notes, currentNote, loadNote, deleteNote } = useNotes();
+  const { notes, currentNote, loadNote, deleteNote, updateNote, setCurrentNote } = useNotes();
+  const [enhancing, setEnhancing] = useState(false);
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString();
@@ -30,12 +31,34 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, onCreateNote }) => 
     }
   };
 
+  const handleEnhance = async () => {
+    if (!currentNote) return;
+    setEnhancing(true);
+    try {
+      const enhanced = await enhanceWithAI(currentNote.content);
+      if (enhanced) {
+        await updateNote(currentNote.id, { content: enhanced });
+        // Immediately update the local currentNote so the UI refreshes
+        setCurrentNote({
+          ...currentNote,
+          content: enhanced,
+          updatedAt: Date.now(),
+        });
+      }
+    } catch (err) {
+      alert('AI enhancement failed.');
+      console.error(err);
+    } finally {
+      setEnhancing(false);
+    }
+  };
+
   return (
     <>
-      {/* Toggle Button */}
+      {/* Toggle Button - now on the right */}
       <button
         onClick={onToggle}
-        className="fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+        className="fixed top-4 right-4 z-50 p-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -49,7 +72,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, onCreateNote }) => 
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="p-4 border-b border-gray-700">
-            <h1 className="text-xl font-bold text-white mb-4">OSFM Editor</h1>
+            <h1 className="text-xl font-bold text-white mb-4">OSFM Markdown Editor</h1>
             
             <Button 
               onClick={onCreateNote}
@@ -106,11 +129,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, onCreateNote }) => 
                 </p>
               </div>
             </div>
-            
+
+            {/* Enhance with AI Button - place above Sign Out */}
+            <Button
+              onClick={handleEnhance}
+              disabled={!currentNote || enhancing}
+              className="w-full mb-2 bg-green-600 hover:bg-green-700 text-white"
+            >
+              {enhancing ? 'Enhancing...' : 'Enhance with AI'}
+            </Button>
+
             <Button
               onClick={signOut}
-              variant="outline"
-              className="w-full text-gray-300 border-gray-600 hover:bg-gray-700"
+              className="w-full text-blue-900 bg-blue-200 hover:bg-blue-300 border-none"
             >
               Sign Out
             </Button>
