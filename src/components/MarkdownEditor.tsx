@@ -34,10 +34,18 @@ const MarkdownEditor: React.FC = () => {
     }
   };
 
-  const renderMarkdown = (markdown: string) => {
-    const html = marked(markdown);
+  const renderMarkdown = async (markdown: string) => {
+    const html = await marked(markdown);
     return DOMPurify.sanitize(html);
   };
+
+  const [renderedContent, setRenderedContent] = useState('');
+
+  useEffect(() => {
+    if (isPreview && content) {
+      renderMarkdown(content).then(setRenderedContent);
+    }
+  }, [content, isPreview]);
 
   if (!currentNote) {
     return (
@@ -98,7 +106,7 @@ const MarkdownEditor: React.FC = () => {
           <div className="w-full overflow-y-auto p-4 bg-gray-900">
             <div 
               className="prose prose-invert max-w-none"
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
+              dangerouslySetInnerHTML={{ __html: renderedContent }}
             />
           </div>
         )}
